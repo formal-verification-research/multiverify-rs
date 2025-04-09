@@ -1,0 +1,20 @@
+[package]
+name = "metaverify"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+creusot-contracts = { version = "0.4.0", optional = true, url = "https://github.com/creusot-rs/creusot/tree/master/creusot-contracts" }
+prusti-contracts = { version = "0.2.0", optional = true }
+prusti-std = { version = "0.2.0", optional = true }
+proc-macro2 = "1.0.94"
+quote = "1.0.40"
+syn = "2.0.100"
+
+[features]
+default = []
+creusot = ["creusot-contracts"]
+prusti = ["prusti-contracts", "prusti-std"]

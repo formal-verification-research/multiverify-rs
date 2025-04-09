@@ -1,19 +1,24 @@
-use std::process::Output;
 
 use proc_macro::TokenStream;
-use quote::quote;
+use proc_macro2::TokenStream as TS;
+use quote::{quote, ToTokens};
 use syn::{parse_macro_input, ItemFn};
 
 #[cfg(feature = "creusot")]
 use creusot_contracts;
 
+#[cfg(feature = "prusti")]
+use prusti_contracts;
+
+
 #[proc_macro_attribute]
 pub fn requires(pred: TokenStream, item: TokenStream) -> TokenStream {
 	#[cfg(feature = "creusot")]
 	{
+		let pred2 = TS::from(pred);
 		let input = parse_macro_input!(item as ItemFn);
 		let output = quote! {
-			#[creusot_contracts::requires(#pred)]
+			#[creusot_contracts::requires(#pred2)]
 			#input
 		};
 		output.into()
@@ -28,9 +33,10 @@ pub fn requires(pred: TokenStream, item: TokenStream) -> TokenStream {
 pub fn ensures(pred: TokenStream, item: TokenStream) -> TokenStream {
 	#[cfg(feature = "creusot")]
 	{
+		let pred2 = TS::from(pred);
 		let input = parse_macro_input!(item as ItemFn);
 		let output = quote! {
-			#[creusot_contracts::ensures(#pred)]
+			#[creusot_contracts::ensures(#pred2)]
 			#input
 		};
 		output.into()
@@ -45,9 +51,10 @@ pub fn ensures(pred: TokenStream, item: TokenStream) -> TokenStream {
 pub fn invariant(pred: TokenStream, item: TokenStream) -> TokenStream {
 	#[cfg(feature = "creusot")]
 	{
+		let pred2 = TS::from(pred);
 		let input = parse_macro_input!(item as ItemFn);
 		let output = quote! {
-			#[creusot_contracts::invariant(#pred)]
+			#[creusot_contracts::invariant(#pred2)]
 			#input
 		};
 		output.into()
@@ -65,7 +72,7 @@ pub fn trusted(_: TokenStream, item: TokenStream) -> TokenStream {
 		let input = parse_macro_input!(item as ItemFn);
 		let output = quote! {
 			#[creusot_contracts::trusted]
-			#item
+			#input
 		};
 		output.into()
 	}
@@ -82,7 +89,7 @@ pub fn pure(_: TokenStream, item: TokenStream) -> TokenStream {
 		let input = parse_macro_input!(item as ItemFn);
 		let output = quote! {
 			#[creusot_contracts::pure]
-			#item
+			#input
 		};
 		output.into()
 	}
@@ -99,7 +106,7 @@ pub fn predicate(_: TokenStream, item: TokenStream) -> TokenStream {
 		let input = parse_macro_input!(item as ItemFn);
 		let output = quote! {
 			#[creusot_contracts::predicate]
-			#item
+			#input
 		};
 		output.into()
 	}
