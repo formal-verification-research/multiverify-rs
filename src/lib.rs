@@ -1,181 +1,113 @@
-extern crate proc_macro;
+use std::process::Output;
 
+use proc_macro::TokenStream;
+use quote::quote;
+use syn::{parse_macro_input, ItemFn};
 
 #[cfg(feature = "creusot")]
 use creusot_contracts;
 
-#[cfg(feature = "creusot")]
 #[proc_macro_attribute]
-pub fn requires(elem1: TS1, tokens: TS1) -> TS1 {
-	creusot_contracts::requires(elem1, tokens)
+pub fn requires(pred: TokenStream, item: TokenStream) -> TokenStream {
+	#[cfg(feature = "creusot")]
+	{
+		let input = parse_macro_input!(item as ItemFn);
+		let output = quote! {
+			#[creusot_contracts::requires(#pred)]
+			#input
+		};
+		output.into()
+	}
+	#[cfg(not(feature = "creusot"))]
+	{
+		item // Do not modify anything
+	}
 }
 
-#[cfg(feature = "creusot")]
 #[proc_macro_attribute]
-pub fn ensures(elem1: TS1, tokens: TS1) -> TS1 {
-	creusot_contracts::ensures(elem1, tokens)
+pub fn ensures(pred: TokenStream, item: TokenStream) -> TokenStream {
+	#[cfg(feature = "creusot")]
+	{
+		let input = parse_macro_input!(item as ItemFn);
+		let output = quote! {
+			#[creusot_contracts::ensures(#pred)]
+			#input
+		};
+		output.into()
+	}
+	#[cfg(not(feature = "creusot"))]
+	{
+		item // Do not modify anything
+	}
 }
 
-#[cfg(feature = "creusot")]
 #[proc_macro_attribute]
-pub fn invariant(elem1: TS1, tokens: TS1) -> TS1 {
-	creusot_contracts::invariant(elem1, tokens)
+pub fn invariant(pred: TokenStream, item: TokenStream) -> TokenStream {
+	#[cfg(feature = "creusot")]
+	{
+		let input = parse_macro_input!(item as ItemFn);
+		let output = quote! {
+			#[creusot_contracts::invariant(#pred)]
+			#input
+		};
+		output.into()
+	}
+	#[cfg(not(feature = "creusot"))]
+	{
+		item // Do not modify anything
+	}
 }
 
-#[cfg(feature = "creusot")]
 #[proc_macro_attribute]
-pub fn variant(elem1: TS1, tokens: TS1) -> TS1 {
-	creusot_contracts::variant(elem1, tokens)
+pub fn trusted(_: TokenStream, item: TokenStream) -> TokenStream {
+	#[cfg(feature = "creusot")]
+	{
+		let input = parse_macro_input!(item as ItemFn);
+		let output = quote! {
+			#[creusot_contracts::trusted]
+			#item
+		};
+		output.into()
+	}
+	#[cfg(not(feature = "creusot"))]
+	{
+		item // Do not modify anything
+	}
 }
 
-
-#[cfg(feature = "creusot")]
-#[proc_macro]
-pub fn proof_assert(elem1: TS1) -> TS1 {
-	creusot_contracts::proof_assert(elem1)
-}
-
-#[cfg(feature = "creusot")]
-#[proc_macro]
-pub fn snapshot(elem: TS1) -> TS1 {
-    creusot_contracts::snapshot(elem)
-}
-
-#[cfg(feature = "creusot")]
-#[proc_macro]
-pub fn ghost(body: TS1) -> TS1 {
-	creusot_contracts::ghost(body) 
-}
-
-#[cfg(feature = "creusot")]
 #[proc_macro_attribute]
-pub fn terminates(elem1: TS1, tokens: TS1) -> TS1 {
-    creusot_contracts::terminates(elem1, tokens)
+pub fn pure(_: TokenStream, item: TokenStream) -> TokenStream {
+	#[cfg(feature = "creusot")]
+	{
+		let input = parse_macro_input!(item as ItemFn);
+		let output = quote! {
+			#[creusot_contracts::pure]
+			#item
+		};
+		output.into()
+	}
+	#[cfg(not(feature = "creusot"))]
+	{
+		item // Do not modify anything
+	}
 }
 
-#[cfg(feature = "creusot")]
 #[proc_macro_attribute]
-pub fn pure(elem1: TS1, tokens: TS1) -> TS1 {
-    creusot_contracts::pure(elem1, tokens)
+pub fn predicate(_: TokenStream, item: TokenStream) -> TokenStream {
+	#[cfg(feature = "creusot")]
+	{
+		let input = parse_macro_input!(item as ItemFn);
+		let output = quote! {
+			#[creusot_contracts::predicate]
+			#item
+		};
+		output.into()
+	}
+	#[cfg(not(feature = "creusot"))]
+	{
+		item // Do not modify anything
+	}
 }
-
-#[cfg(feature = "creusot")]
-#[proc_macro_attribute]
-pub fn logic(elem1: TS1, elem2: TS1) -> TS1 {
-    creusot_contracts::logic(elem1, elem2)
-}
-
-#[cfg(feature = "creusot")]
-#[proc_macro]
-pub fn pearlite(elem1: TS1) -> TS1 {
-    creusot_contracts::pearlite(elem1)
-}
-
-#[cfg(feature = "creusot")]
-#[proc_macro_attribute]
-pub fn predicate(elem1: TS1, elem2: TS1) -> TS1 {
-    creusot_contracts::predicate(elem1, elem2)
-}
-
-#[cfg(feature = "creusot")]
-#[proc_macro_attribute]
-pub fn law(elem1: TS1, elem2: TS1) -> TS1 {
-    creusot_contracts::law(elem1, elem2)
-}
-
-#[cfg(feature = "creusot")]
-#[proc_macro_attribute]
-pub fn trusted(elem1: TS1, tokens: TS1) -> TS1 {
-    creusot_contracts::trusted(elem1, tokens)
-}
-
-#[cfg(feature = "creusot")]
-#[proc_macro]
-pub fn extern_spec(elem1: TS1) -> TS1 {
-    creusot_contracts::extern_spec(elem1)
-}
-
-#[cfg(feature = "creusot")]
-#[proc_macro_attribute]
-pub fn maintains(elem1: TS1, tokens: TS1) -> TS1 {
-    creusot_contracts::maintains(elem1, tokens)
-}
-
-#[cfg(feature = "creusot")]
-#[proc_macro_attribute]
-pub fn open(elem1: TS1, tokens: TS1) -> TS1 {
-    creusot_contracts::open(elem1, token)
-}
-
-#[cfg(feature = "creusot")]
-#[proc_macro_attribute]
-pub fn open_inv_result(elem1: TS1, tokens: TS1) -> TS1 {
-    creusot_contracts(elem1, tokens)
-}
-
-#[cfg(feature = "creusot")]
-#[proc_macro_attribute]
-pub fn bitwise_proof(elem1: TS1, tokens: TS1) -> TS1 {
-    creusot_contracts::bitwise_proof(elem1, tokens)
-}
-
-
-// Define a macro to conditionally compile the attributes
-// #[cfg(feature = "creusot")]
-// macro_rules! invariant {
-//	 ($predicate:expr) => {
-//		 #[invariant($predicate)]
-//	 };
-// }
-//
-// #[cfg(not(feature = "creusot"))]
-// macro_rules! invariant {
-//	 ($predicate:expr) => {
-//		 // No-op for the invariant
-//	 };
-// }
-//
-// #[cfg(feature = "creusot")]
-// macro_rules! requires {
-//	 ($predicate:expr) => {
-//		 #[requires($predicate)]
-//	 };
-// }
-//
-// #[cfg(not(feature = "creusot"))]
-// macro_rules! requires {
-//	 ($predicate:expr) => {
-//		 // No-op for the requires
-//	 };
-// }
-//
-// #[cfg(feature = "creusot")]
-// macro_rules! ensures {
-//	 ($predicate:expr) => {
-//		 #[ensures($predicate)]
-//	 };
-// }
-//
-// #[cfg(not(feature = "creusot"))]
-// macro_rules! ensures {
-//	 ($predicate:expr) => {
-//		 // No-op for the ensures
-//	 };
-// }
-//
-// #[cfg(feature = "creusot")]
-// macro_rules! trusted {
-//	 () => {
-// 		#[trusted]
-// 	}
-// }
-//
-// #[cfg(not(feature = "creusot"))]
-// macro_rules! trusted {
-//	 () => {
-// 		// No op when creusot is not enabled
-// 	}
-// }
 
 #[cfg(feature = "creusot")]
 macro_rules! snapshot {
@@ -184,7 +116,7 @@ macro_rules! snapshot {
 	};
 }
 
-#[cft(not(feature = "creusot"))]
+#[cfg(not(feature = "creusot"))]
 macro_rules! snapshot {
 	($thing:expr) => {
 		// No-op
@@ -198,7 +130,7 @@ macro_rules! pearlite {
 	};
 }
 
-#[cft(not(feature = "creusot"))]
+#[cfg(not(feature = "creusot"))]
 macro_rules! pearlite {
 	($thing:expr) => {
 		// No-op
