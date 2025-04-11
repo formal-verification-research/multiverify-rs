@@ -2,7 +2,7 @@
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TS;
 use quote::{quote, ToTokens};
-use syn::{parse_macro_input, ItemFn};
+use syn::{parse_macro_input, ItemFn, Expr};
 
 #[cfg(feature = "creusot")]
 use creusot_contracts;
@@ -154,68 +154,57 @@ pub fn predicate(_: TokenStream, item: TokenStream) -> TokenStream {
 	}
 }
 
-// Macros
-
-#[cfg(feature = "creusot")]
-#[macro_export]
-macro_rules! snapshot {
-	($thing:expr) => {
-		prusti_contracts::snapshot!($thing)
-	};
-}
-
-#[cfg(not(feature = "creusot"))]
-#[macro_export]
-macro_rules! snapshot {
-	($thing:expr) => {
-		// No-op
-	};
-}
-
-#[cfg(feature = "creusot")]
-#[macro_export]
-macro_rules! pearlite {
-	($thing:expr) => {
-		prusti_contracts::pearlite!($thing)
-	};
-}
-
-#[cfg(not(feature = "creusot"))]
-#[macro_export]
-macro_rules! pearlite {
-	($thing:expr) => {
-		// No-op
-	};
-}
-
-#[cfg(feature = "creusot")]
-#[macro_export]
-macro_rules! pure {
-    ($thing:expr) => {
-		prusti_contracts::ghost!($thing)
+#[proc_macro]
+pub fn snapshot(input: TokenStream) -> TokenStream {
+    let thing = parse_macro_input!(input as Expr);
+    
+    // Check if the "creusot" feature is enabled
+    let expanded = if cfg!(feature = "creusot") {
+        quote! {
+            creusot_contracts::snapshot!(#thing)
+        }
+    } else {
+        quote! {
+            // No-op
+        }
     };
+
+    TokenStream::from(expanded)
 }
 
-#[cfg(not(feature = "creusot"))]
-#[macro_export]
-macro_rules! pure {
-	($thing:expr) => {
-		// No-op
-	};
-}
-
-#[cfg(feature = "creusot")]
-#[macro_export]
-macro_rules! proof_assert {
-    ($thing:expr) => {
-		prusti_contracts::ghost!($thing)
+#[proc_macro]
+pub fn pearlite(input: TokenStream) -> TokenStream {
+    let thing = parse_macro_input!(input as Expr);
+    
+    // Check if the "creusot" feature is enabled
+    let expanded = if cfg!(feature = "creusot") {
+        quote! {
+            creusot_contracts::pearlite!(#thing)
+        }
+    } else {
+        quote! {
+            // No-op
+        }
     };
+
+    TokenStream::from(expanded)
 }
 
-#[cfg(not(feature = "creusot"))]
-#[macro_export]
-macro_rules! proof_assert {
-	($thing:expr) => {
-		// No-op
-	};
+#[proc_macro]
+pub fn proof_assert(input: TokenStream) -> TokenStream {
+    let thing = parse_macro_input!(input as Expr);
+    
+    // Check if the "creusot" feature is enabled
+    let expanded = if cfg!(feature = "creusot") {
+        quote! {
+            creusot_contracts::ghost!(#thing)
+        }
+    } else {
+        quote! {
+            // No-op
+        }
+    };
+
+    TokenStream::from(expanded)
 }
+
