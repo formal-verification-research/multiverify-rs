@@ -10,6 +10,7 @@ use creusot_contracts;
 #[cfg(feature = "prusti")]
 use prusti_contracts;
 
+// Attributes which take a predicate
 
 #[proc_macro_attribute]
 pub fn requires(pred: TokenStream, item: TokenStream) -> TokenStream {
@@ -55,6 +56,43 @@ pub fn invariant(pred: TokenStream, item: TokenStream) -> TokenStream {
 		let input = parse_macro_input!(item as ItemFn);
 		let output = quote! {
 			#[creusot_contracts::invariant(#pred2)]
+			#input
+		};
+		output.into()
+	}
+	#[cfg(not(feature = "creusot"))]
+	{
+		item // Do not modify anything
+	}
+}
+
+#[proc_macro_attribute]
+pub fn variant(pred: TokenStream, item: TokenStream) -> TokenStream {
+	#[cfg(feature = "creusot")]
+	{
+		let pred2 = TS::from(pred);
+		let input = parse_macro_input!(item as ItemFn);
+		let output = quote! {
+			#[creusot_contracts::variant(#pred2)]
+			#input
+		};
+		output.into()
+	}
+	#[cfg(not(feature = "creusot"))]
+	{
+		item // Do not modify anything
+	}
+}
+
+// Attributes which do not take a predicate
+
+#[proc_macro_attribute]
+pub fn terminates(_: TokenStream, item: TokenStream) -> TokenStream {
+	#[cfg(feature = "creusot")]
+	{
+		let input = parse_macro_input!(item as ItemFn);
+		let output = quote! {
+			#[creusot_contracts::terminates]
 			#input
 		};
 		output.into()
@@ -116,10 +154,12 @@ pub fn predicate(_: TokenStream, item: TokenStream) -> TokenStream {
 	}
 }
 
+// Macros
+
 #[cfg(feature = "creusot")]
 macro_rules! snapshot {
 	($thing:expr) => {
-		snapshot!($thing)
+		prusti_contracts::snapshot!($thing)
 	};
 }
 
@@ -133,12 +173,40 @@ macro_rules! snapshot {
 #[cfg(feature = "creusot")]
 macro_rules! pearlite {
 	($thing:expr) => {
-		pearlite!($thing)
+		prusti_contracts::pearlite!($thing)
 	};
 }
 
 #[cfg(not(feature = "creusot"))]
 macro_rules! pearlite {
+	($thing:expr) => {
+		// No-op
+	};
+}
+
+#[cfg(feature = "creusot")]
+macro_rules! pure {
+    ($thing:expr) => {
+		prusti_contracts::ghost!($thing)
+    };
+}
+
+#[cfg(not(feature = "creusot"))]
+macro_rules! pure {
+	($thing:expr) => {
+		// No-op
+	};
+}
+
+#[cfg(feature = "creusot")]
+macro_rules! proof_assert {
+    ($thing:expr) => {
+		prusti_contracts::ghost!($thing)
+    };
+}
+
+#[cfg(not(feature = "creusot"))]
+macro_rules! proof_assert {
 	($thing:expr) => {
 		// No-op
 	};
@@ -148,8 +216,12 @@ macro_rules! pearlite {
 mod tests {
 	use super::*;
 
+	#[cfg(feature = "creusot")]
+	use creusot_contracts::{logic::Int, *};
+
 	// ======== Tests stolen from Creusot's test suite ======== 
 
+	#[cfg(feature = "creusot")]
 	#[ensures(forall<i : Int> 0 <= i && i < (^v)@.len() ==> (^v)[i] == 0u32)]
 	#[ensures(v@.len() == (^v)@.len())]
 	pub fn all_zero(v: &mut Vec<u32>) {
@@ -161,6 +233,7 @@ mod tests {
 		}
 	}
 
+	#[cfg(feature = "creusot")]
 	#[predicate]
 	fn sorted_range<T: OrdLogic>(s: Seq<T>, l: Int, u: Int) -> bool {
 		pearlite! {
@@ -168,11 +241,13 @@ mod tests {
 		}
 	}
 
+	#[cfg(feature = "creusot")]
 	#[predicate]
 	fn sorted<T: OrdLogic>(s: Seq<T>) -> bool {
 		sorted_range(s, 0, s.len())
 	}
 
+	#[cfg(feature = "creusot")]
 	#[ensures(sorted((^v).deep_model()))]
 	#[ensures((^v)@.permutation_of(v@))]
 	pub fn gnome_sort<T: Ord + DeepModel>(v: &mut Vec<T>)
@@ -193,6 +268,7 @@ mod tests {
 		}
 	}
 
+	#[cfg(feature = "creusot")]
 	#[trusted]
 	#[requires(l@ <= u@)]
 	#[ensures(l@ <= result@ && result@  < u@)]
@@ -200,6 +276,7 @@ mod tests {
 		panic!()
 	}
 
+	#[cfg(feature = "creusot")]
 	#[ensures((^v)@.permutation_of(v@))]
 	pub fn knuth_shuffle<T>(v: &mut Vec<T>) {
 		let old_v = snapshot! { v };
@@ -214,6 +291,7 @@ mod tests {
 		}
 	}
 
+	#[cfg(feature = "creusot")]
 	#[predicate]
 	fn sorted_range(s: Seq<u32>, l: Int, u: Int) -> bool {
 		pearlite! {
@@ -221,11 +299,13 @@ mod tests {
 		}
 	}
 
+	#[cfg(feature = "creusot")]
 	#[predicate]
 	fn sorted(s: Seq<u32>) -> bool {
 		sorted_range(s, 0, s.len())
 	}
 
+	#[cfg(feature = "creusot")]
 	#[requires(arr@.len() <= usize::MAX@)]
 	#[requires(sorted(arr@))]
 	#[ensures(forall<x:usize> result == Ok(x) ==> arr[x@] == elem)]
@@ -260,9 +340,4 @@ mod tests {
 			Err(base)
 		}
 	}
-	// #[test]
-	// fn it_works() {
-	// 	let result = add(2, 2);
-	// 	assert_eq!(result, 4);
-	// }
 }
