@@ -157,7 +157,7 @@ pub fn predicate(_: TokenStream, item: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn snapshot(input: TokenStream) -> TokenStream {
     let thing = parse_macro_input!(input as Expr);
-    
+
     // Check if the "creusot" feature is enabled
     let expanded = if cfg!(feature = "creusot") {
         quote! {
@@ -175,7 +175,7 @@ pub fn snapshot(input: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn pearlite(input: TokenStream) -> TokenStream {
     let thing = parse_macro_input!(input as Expr);
-    
+
     // Check if the "creusot" feature is enabled
     let expanded = if cfg!(feature = "creusot") {
         quote! {
@@ -193,7 +193,25 @@ pub fn pearlite(input: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn proof_assert(input: TokenStream) -> TokenStream {
     let thing = parse_macro_input!(input as Expr);
-    
+
+    // Check if the "creusot" feature is enabled
+    let expanded = if cfg!(feature = "creusot") {
+        quote! {
+            creusot_contracts::proof_assert!(#thing)
+        }
+    } else {
+        quote! {
+            // No-op
+        }
+    };
+
+    TokenStream::from(expanded)
+}
+
+#[proc_macro]
+pub fn ghost(input: TokenStream) -> TokenStream {
+    let thing = parse_macro_input!(input as Expr);
+
     // Check if the "creusot" feature is enabled
     let expanded = if cfg!(feature = "creusot") {
         quote! {
@@ -207,4 +225,3 @@ pub fn proof_assert(input: TokenStream) -> TokenStream {
 
     TokenStream::from(expanded)
 }
-
